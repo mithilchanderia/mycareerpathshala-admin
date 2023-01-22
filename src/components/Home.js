@@ -4,25 +4,39 @@ import React from "react";
 const Home = () => {
 	const columns = [
 		{
-			title: "College Name",
+			title: "Data Name",
 			dataIndex: "name",
 			key: "name",
+			width: 500,
+			render: (_, data) => {
+				return <a href={data?.link}>{data?.name}</a>;
+			},
+		},
+	];
+
+	const dataSource = [
+		{
+			key: 1,
+			name: "MBBS Abroad",
+			link: "/mbbs",
 		},
 		{
-			title: "Description",
-			dataIndex: "description",
-			key: "description",
+			key: 2,
+			name: "Other Courses",
+			link: "/othercourses",
 		},
 	];
 
 	return (
-		<Table
-			// dataSource={departmentList}
-			columns={columns}
-			// rowKey={departmentList => departmentList?.id}
-			pagination={false}
-			bordered
-		/>
+		<div className="d-flex justify-content-center mt-5">
+			<Table
+				dataSource={dataSource}
+				columns={columns}
+				rowKey={dataSource => dataSource?.key}
+				pagination={false}
+				bordered
+			/>
+		</div>
 	);
 };
 
