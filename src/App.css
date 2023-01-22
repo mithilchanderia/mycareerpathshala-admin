@@ -1,0 +1,11 @@
+:root {
+	--custom-green: #198754;
+	--custom-white: #ffffff;
+	--custom-black: #000000;
+	--custom-red: #ca2c33;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+}
