@@ -34,18 +34,16 @@ export const userLogout = () => async (dispatch, getState) => {
 	try {
 		dispatch({ type: LOGOUT_USER.REQUEST });
 
-		const { token, userId, selectedCompanyId } = getState().userDetails;
+		const { token, userId } = getState().user;
 
 		const config = {
 			headers: {
 				"Content-Type": "application/json",
 				"Session-Token": token,
-				"Company-Id": selectedCompanyId,
 			},
 		};
 
 		await axios.get(`${base_url}/v1/user/${userId}/logout`, config);
-
 		dispatch({
 			type: LOGOUT_USER.SUCCESS,
 			payload: {
