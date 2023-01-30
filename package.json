@@ -27,6 +27,8 @@
 		"redux-persist": "^6.0.0",
 		"redux-saga": "^1.2.2",
 		"redux-thunk": "^2.4.2",
+		"suneditor": "^2.44.3",
+		"suneditor-react": "^3.4.1",
 		"web-vitals": "^2.1.4"
 	},
 	"scripts": {

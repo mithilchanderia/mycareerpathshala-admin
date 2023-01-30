@@ -1,12 +1,14 @@
 import { Table } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { base_url } from "../actions/baseUrls";
 import Navbar from "./Navbar";
 
 const Mbbs = () => {
+	const navigate = useNavigate();
 	const [dataSource, setDataSource] = useState([]);
-	console.log(dataSource);
+
 	useEffect(() => {
 		axios
 			.get(`${base_url}/all-mbbs-college`)
@@ -24,7 +26,7 @@ const Mbbs = () => {
 				return (
 					<button
 						className="btn btn-link text-start"
-						onClick={() => console.log(data?.courseId)}
+						onClick={() => navigate(`/mbbs/${data?.courseId}`)}
 					>
 						{data?.name}
 					</button>

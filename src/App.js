@@ -9,6 +9,7 @@ import "./App.css";
 import Home from "./components/Home";
 import LoginPage from "./components/login/LoginPage";
 import Mbbs from "./components/Mbbs";
+import MbbsDetails from "./components/MbbsDetails";
 import OtherCourses from "./components/OtherCourses";
 
 const App = () => {
@@ -19,6 +20,7 @@ const App = () => {
 				<Route path="/dashboard" element={<Home />} exact />
 				<Route path="/mbbs" element={<Mbbs />} exact />
 				<Route path="/othercourses" element={<OtherCourses />} exact />
+				<Route path="/mbbs/:courseId" element={<MbbsDetails />} exact />
 				<Route path="*" element={<Navigate to="/login" />} />
 			</Routes>
 		</Router>
