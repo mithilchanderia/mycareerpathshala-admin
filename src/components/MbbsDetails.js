@@ -35,6 +35,8 @@ const MbbsDetails = (props) => {
   ].sort();
 
   const [collegeName, setCollegeName] = useState('');
+  const [collegeId, setCollegeId] = useState('');
+  const [dbId, setDbId] = useState('');
   const [cityName, setCityName] = useState('');
   const [countryName, setCountryName] = useState('');
   const [universityType, setUniversityType] = useState('');
@@ -117,8 +119,10 @@ const MbbsDetails = (props) => {
               rank: data.importantFacts?.ranking[key],
             }))
           );
-		  setsyllabus(data.syllabus)
-       
+          setsyllabus(data.syllabus);
+		  setCollegeId(data.collegeId)
+		  setDbId(data.dbId)
+
         }
       })
       .catch((err) => console.log(err));
@@ -141,9 +145,60 @@ const MbbsDetails = (props) => {
   };
   const removeSyllabusFormData = (i) => {
     const newSyllabus = syllabus.filter((f, index) => i !== index);
-    setRanking([...syllabus]);
+    setsyllabus([...newSyllabus]);
   };
-  console.log('recognizedBy', ranking);
+  const saveDetails=()=>{
+	let courseId = window.location.pathname.split('/').pop();
+
+	  const data={
+		collegeId: collegeId,
+		courseId: courseId,
+		dbId: dbId,
+		city: cityName,
+		country: countryName,
+		universityType: universityType,
+		establishmentYear: establishmentYear,
+		brochureLink: brochureLink,
+		backgroundImg: backgroundImage,
+		logoImg: logoImage,
+		about: about,
+		courseDurationYears: courseDuration,
+		firstYearFees: firstYearFees,
+		intake: intake,
+		importantFacts: {
+			applicationStartDate: applicationStartDate,
+			applicationEndDate: applicationEndDate,
+			courseDurationFulltimeMonths: courseDurationFulltime,
+			courseDurationInternshipMonths:courseDurationInternship,
+			courseDurationOverallMonths: courseDurationOverall,
+			recognizedBy:recognizedBy,
+			ranking: ranking,
+			overview: {
+				content: overview,
+				videoLinks: videoLinks,
+				facilities: facilities
+			},
+			admissionCriteria: admissionCriteria,
+			feesStructure: {
+				firstYearFees: firstYearFees,
+				totalPackage: totalPackage,
+				secondToSixthYearFees: secondToSixthYearFees,
+				currency: currency,
+				content: feestructure
+			},
+			syllabus: syllabus
+		}
+	  }
+	axios
+	.post(`${base_url}/mbbs/save`, data)
+	.then((res) => {
+	  let data = res?.data;
+	  if (data) {
+		
+	  }
+	})
+	.catch((err) => console.log(err));
+  }
   return (
     <>
       <Navbar />
@@ -567,15 +622,18 @@ const MbbsDetails = (props) => {
 
         <Row>
           <h4 style={{ color: '#0d6efd' }}>Syllabus</h4>
-          <button
-            className='w-50 btn btn-primary'
-            type='button'
-            onClick={() =>
-              setsyllabus([...syllabus, { title: '', courses: '' }])
-            }
-          >
-            Add Syllabus
-          </button>
+          <div className='mt-3'>
+            <button
+              className='w-50 btn btn-primary'
+              type='button'
+              onClick={() =>
+                setsyllabus([...syllabus, { title: '', courses: '' }])
+              }
+            >
+              Add Syllabus
+            </button>
+          </div>
+
           <form>
             {syllabus?.map((body, index) => {
               return (
@@ -591,7 +649,7 @@ const MbbsDetails = (props) => {
                   </Col>
                   <Col>
                     <Chips
-					  name='courses'
+                      name='courses'
                       placeholder='Courses'
                       style={{ display: 'block' }}
                       value={body?.courses}
@@ -629,6 +687,18 @@ const MbbsDetails = (props) => {
               onChange={(e) => setCourses(e.value)}
             />
           </Col> */}
+        </Row>
+        <br />
+        <Row className='d-flex flex-1 flex-grow-1 justify-content-center align-items-center'>
+          <button
+            className='w-50 btn btn-primary align-self-center'
+            type='button'
+            onClick={() =>
+              saveDetails()
+            }
+          >
+            Save Details
+          </button>
         </Row>
       </div>
     </>
