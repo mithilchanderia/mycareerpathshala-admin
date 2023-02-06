@@ -69,6 +69,9 @@ const MbbsDetails = props => {
 	const [ranking, setRanking] = useState([{ rankingBody: "", rank: "" }]);
 
 	useEffect(() => {
+		fetchData()
+	}, []);
+	const fetchData=()=>{
 		let courseId = window.location.pathname.split("/").pop();
 		axios
 			.post(`${base_url}/get-mbbs-course-details`, { courseId: courseId })
@@ -123,7 +126,7 @@ const MbbsDetails = props => {
 				}
 			})
 			.catch(err => console.log(err));
-	}, []);
+	}
 
 	const handleChange = (e, i) => {
 		const newRanking = ranking;
@@ -198,8 +201,9 @@ const MbbsDetails = props => {
 			.post(`${base_url}/mbbs/save`, data)
 			.then(res => {
 				let data = res?.data;
-				if (data) {
-					console.log(data);
+				if (data?.success) {
+					fetchData()
+
 				}
 			})
 			.catch(err => console.log(err));
