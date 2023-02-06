@@ -53,7 +53,7 @@ const MbbsDetails = props => {
 	const [courseDurationOverall, setCourseDurationOverall] = useState("");
 	const [applicationStartDate, setApplicationStartDate] = useState("");
 	const [applicationEndDate, setApplicationEndDate] = useState("");
-	const [teachingMedium, setTeachingMedium] = useState("");
+	const [teachingMedium, setTeachingMedium] = useState([]);
 	const [recognizedBy, setRecognizedBy] = useState([]);
 	const [videoLinks, setVideoLinks] = useState([]);
 	const [facilities, setFacilities] = useState([]);
@@ -148,9 +148,10 @@ const MbbsDetails = props => {
 		let courseId = window.location.pathname.split("/").pop();
 
 		const data = {
+			collegeName: collegeName,
 			collegeId: collegeId,
 			courseId: courseId,
-			dbId: dbId,
+
 			city: cityName,
 			country: countryName,
 			universityType: universityType,
@@ -191,6 +192,7 @@ const MbbsDetails = props => {
 			},
 			syllabus: syllabus,
 		};
+		dbId && data.push(dbId);
 		axios
 			.post(`${base_url}/mbbs/save`, data)
 			.then(res => {
@@ -212,6 +214,15 @@ const MbbsDetails = props => {
 							placeholder="College Name"
 							value={collegeName}
 							onChange={e => setCollegeName(e.target.value)}
+						/>
+					</Col>
+					<Col>
+						<label className="form-label">College Id</label>
+						<InputText
+							className="form-control"
+							placeholder="College Id"
+							value={collegeId}
+							onChange={e => setCollegeId(e.target.value)}
 						/>
 					</Col>
 					<Col>
@@ -247,6 +258,7 @@ const MbbsDetails = props => {
 						<label className="form-label">Establishment Year</label>
 						<InputText
 							className="form-control"
+							type="number"
 							placeholder="Establishment Year"
 							value={establishmentYear}
 							onChange={e => setEstablishmentYear(e.target.value)}
@@ -380,11 +392,11 @@ const MbbsDetails = props => {
 					</Col>
 					<Col>
 						<label className="form-label">Teaching Medium</label>
-						<InputText
-							className="form-control"
+						<Chips
 							placeholder="Teaching Medium"
+							style={{ display: "block" }}
 							value={teachingMedium}
-							onChange={e => setTeachingMedium(e.target.value)}
+							onChange={e => setTeachingMedium(e.value)}
 						/>
 					</Col>
 				</Row>
@@ -700,9 +712,10 @@ const MbbsDetails = props => {
 				<br />
 				<Row className="d-flex flex-1 flex-grow-1 justify-content-center align-items-center">
 					<button
-						className="w-50 btn btn-primary align-self-center"
+						className="btn btn-primary align-self-center"
 						type="button"
 						onClick={() => saveDetails()}
+						style={{ width: 150 }}
 					>
 						Save Details
 					</button>

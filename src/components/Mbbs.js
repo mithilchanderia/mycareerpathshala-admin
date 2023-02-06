@@ -22,16 +22,6 @@ const Mbbs = () => {
 			dataIndex: "name",
 			key: "name",
 			width: 300,
-			render: (_, data) => {
-				return (
-					<button
-						className="btn btn-link text-start"
-						onClick={() => navigate(`/mbbs/${data?.courseId}`)}
-					>
-						{data?.name}
-					</button>
-				);
-			},
 		},
 		{
 			title: "Country",
@@ -51,12 +41,44 @@ const Mbbs = () => {
 			key: "courseId",
 			width: 200,
 		},
+		{
+			title: "Actions",
+			key: "Actions",
+			dataIndex: "action",
+			width: 200,
+			render: (_, data) => {
+				return (
+					<>
+						<button
+							className="btn btn-link align-self-end mb-2"
+							onClick={() => navigate(`/mbbs/${data?.courseId}`)}
+							style={{ width: 100, textDecoration: "none" }}
+						>
+							Edit
+						</button>
+						<button
+							className="btn btn-link align-self-end mb-2"
+							// onClick={() => navigate(`/mbbs/${data?.courseId}`)}
+							style={{ width: 100, textDecoration: "none", color: "red" }}
+						>
+							Delete
+						</button>
+					</>
+				);
+			},
+		},
 	];
 
 	return (
 		<>
 			<Navbar />
-			<div className="d-flex justify-content-center mt-5">
+			<div className="container d-flex justify-content-center flex-column mt-5">
+				<button
+					className="btn btn-primary align-self-end mb-3"
+					onClick={() => navigate("/mbbs/create")}
+				>
+					Add New College
+				</button>
 				<Table
 					dataSource={dataSource}
 					columns={columns}
