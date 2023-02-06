@@ -9,3 +9,21 @@
 	margin: 0;
 	padding: 0;
 }
+
+.ant-notification-notice_success {
+	background-color: var(--custom-green);
+}
+
+.ant-notification-notice_error {
+	background-color: var(--custom-orange);
+}
+
+.ant-notification-notice-message {
+	color: var(--custom-white) !important;
+	font-size: 1rem;
+	font-weight: 500;
+}
+
+.ant-notification-notice-close {
+	color: var(--custom-white) !important;
+}

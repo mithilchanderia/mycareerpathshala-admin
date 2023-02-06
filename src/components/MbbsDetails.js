@@ -1,15 +1,24 @@
+import { Space, Spin } from "antd";
 import axios from "axios";
 import { Chips } from "primereact/chips";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
 import React, { useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
+import { MdArrowBackIosNew } from "react-icons/md";
+import { useDispatch } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import SunEditor from "suneditor-react";
 import "suneditor/dist/css/suneditor.min.css";
 import { base_url } from "../actions/baseUrls";
+import { addNotification } from "../actions/notifications";
 import Navbar from "./Navbar";
 
-const MbbsDetails = props => {
+const MbbsDetails = () => {
+	const { courseId } = useParams();
+	const navigate = useNavigate();
+	const dispatch = useDispatch();
+
 	const htmlWithTable = ``;
 	const htmlWithTable2 = ``;
 	const htmlWithTable3 = ``;
@@ -34,8 +43,10 @@ const MbbsDetails = props => {
 		...defaultFonts,
 	].sort();
 
+	const [isLoading, setIsLoading] = useState(false);
 	const [collegeName, setCollegeName] = useState("");
 	const [collegeId, setCollegeId] = useState("");
+	const [courseIdNew, setCourseIdNew] = useState("");
 	const [dbId, setDbId] = useState("");
 	const [cityName, setCityName] = useState("");
 	const [countryName, setCountryName] = useState("");
@@ -68,65 +79,69 @@ const MbbsDetails = props => {
 
 	const [ranking, setRanking] = useState([{ rankingBody: "", rank: "" }]);
 
+	const fetchData = () => {
+		setIsLoading(true);
+		if (courseId && courseId !== "create")
+			axios
+				.post(`${base_url}/get-mbbs-course-details`, { courseId: courseId })
+				.then(res => {
+					let data = res?.data;
+					if (data) {
+						setCollegeName(data.collegeName);
+						setCityName(data.city);
+						setCountryName(data.country);
+						setUniversityType(data.universityType);
+						setEstablishmentYear(data.establishmentYear);
+						setBrochureLink(data.brochureLink);
+						setBackgroundImage(data.bgImg);
+						setLogoImage(data.logoImg);
+						setCourseDuration(data.courseDurationYears || "");
+						setFees(data.fees);
+						setAbout(data.about);
+						setCourseDurationFulltime(
+							data.importantFacts?.courseDurationFulltimeMonths
+						);
+						setTeachingMedium(data.importantFacts?.teachingMedium);
+						setCourseDurationInternship(
+							data.importantFacts?.courseDurationInternshipMonths
+						);
+						setCourseDurationOverall(
+							data.importantFacts?.courseDurationOverallMonths
+						);
+						setRecognizedBy(data.importantFacts?.recognisedBy);
+						setFacilities(
+							data.overview?.facilitiesAndAccomodation?.facilities?.map(
+								a => a.label
+							)
+						);
+						setOverview(data.overview?.benefits?.content);
+						setVideoLinks(data.overview?.benefits?.videoLinks);
+						setAdmissionCriteria(data.admissionCriteria);
+						setFirstYearFees(data.feeStructure?.firstYearFees);
+						setSecondToSixthYearFees(
+							data.feeStructure?.secondToSixthYearFeesYearly
+						);
+						setCurrency(data.feeStructure?.currency);
+						setTotalPackage(data.feeStructure?.totalPackage);
+						setRanking(
+							Object.keys(data.importantFacts?.ranking).map(key => ({
+								rankingBody: key,
+								rank: data.importantFacts?.ranking[key],
+							}))
+						);
+						data?.syllabus && setsyllabus(data?.syllabus);
+						setCollegeId(data.collegeId);
+						setCourseIdNew(data.courseId);
+						setDbId(data.dbId);
+					}
+					setIsLoading(false);
+				})
+				.catch(err => console.log(err));
+	};
+
 	useEffect(() => {
-		fetchData()
-	}, []);
-	const fetchData=()=>{
-		let courseId = window.location.pathname.split("/").pop();
-		axios
-			.post(`${base_url}/get-mbbs-course-details`, { courseId: courseId })
-			.then(res => {
-				let data = res?.data;
-				if (data) {
-					setCollegeName(data.collegeName);
-					setCityName(data.city);
-					setCountryName(data.country);
-					setUniversityType(data.universityType);
-					setEstablishmentYear(data.establishmentYear);
-					setBrochureLink(data.brochureLink);
-					setBackgroundImage(data.bgImg);
-					setLogoImage(data.logoImg);
-					setCourseDuration(data.courseDurationYears || "");
-					setFees(data.fees);
-					setAbout(data.about);
-					setCourseDurationFulltime(
-						data.importantFacts?.courseDurationFulltimeMonths
-					);
-					setTeachingMedium(data.importantFacts?.teachingMedium);
-					setCourseDurationInternship(
-						data.importantFacts?.courseDurationInternshipMonths
-					);
-					setCourseDurationOverall(
-						data.importantFacts?.courseDurationOverallMonths
-					);
-					setRecognizedBy(data.importantFacts?.recognisedBy);
-					setFacilities(
-						data.overview?.facilitiesAndAccomodation?.facilities?.map(
-							a => a.label
-						)
-					);
-					setOverview(data.overview?.benefits?.content);
-					setVideoLinks(data.overview?.benefits?.videoLinks);
-					setAdmissionCriteria(data.admissionCriteria);
-					setFirstYearFees(data.feeStructure?.firstYearFees);
-					setSecondToSixthYearFees(
-						data.feeStructure?.secondToSixthYearFeesYearly
-					);
-					setCurrency(data.feeStructure?.currency);
-					setTotalPackage(data.feeStructure?.totalPackage);
-					setRanking(
-						Object.keys(data.importantFacts?.ranking).map(key => ({
-							rankingBody: key,
-							rank: data.importantFacts?.ranking[key],
-						}))
-					);
-					data?.syllabus && setsyllabus(data?.syllabus);
-					setCollegeId(data.collegeId);
-					setDbId(data.dbId);
-				}
-			})
-			.catch(err => console.log(err));
-	}
+		fetchData();
+	}, [courseId]);
 
 	const handleChange = (e, i) => {
 		const newRanking = ranking;
@@ -147,14 +162,13 @@ const MbbsDetails = props => {
 		const newSyllabus = syllabus.filter((f, index) => i !== index);
 		setsyllabus([...newSyllabus]);
 	};
-	const saveDetails = () => {
-		let courseId = window.location.pathname.split("/").pop();
 
+	const saveDetails = () => {
+		setIsLoading(true);
 		const data = {
 			collegeName: collegeName,
 			collegeId: collegeId,
-			courseId: courseId,
-
+			courseId: courseIdNew,
 			city: cityName,
 			country: countryName,
 			universityType: universityType,
@@ -202,492 +216,295 @@ const MbbsDetails = props => {
 			.then(res => {
 				let data = res?.data;
 				if (data?.success) {
-					fetchData()
-
+					navigate(`/mbbs/${courseIdNew}`);
+					dispatch(
+						addNotification({
+							message: "College saved successfully",
+							type: "success",
+						})
+					);
 				}
+				setIsLoading(false);
 			})
 			.catch(err => console.log(err));
 	};
+
 	return (
 		<>
 			<Navbar />
-			<div className="p-5">
-				<Row className="mb-3">
-					<Col>
-						<label className="form-label">College Name</label>
-						<InputText
-							className="form-control"
-							placeholder="College Name"
-							value={collegeName}
-							onChange={e => setCollegeName(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">College Id</label>
-						<InputText
-							className="form-control"
-							placeholder="College Id"
-							value={collegeId}
-							onChange={e => setCollegeId(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">City</label>
-						<InputText
-							className="form-control"
-							placeholder="City"
-							value={cityName}
-							onChange={e => setCityName(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Country</label>
-						<InputText
-							className="form-control"
-							placeholder="Country"
-							value={countryName}
-							onChange={e => setCountryName(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">University Type</label>
-						<InputText
-							className="form-control"
-							placeholder="University Type"
-							value={universityType}
-							onChange={e => setUniversityType(e.target.value)}
-						/>
-					</Col>
-				</Row>
-				<Row className="mb-3">
-					<Col>
-						<label className="form-label">Establishment Year</label>
-						<InputText
-							className="form-control"
-							type="number"
-							placeholder="Establishment Year"
-							value={establishmentYear}
-							onChange={e => setEstablishmentYear(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Brochure Link</label>
-						<InputText
-							className="form-control"
-							placeholder="Brochure Link"
-							value={brochureLink}
-							onChange={e => setBrochureLink(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Background Image</label>
-						<InputText
-							className="form-control"
-							placeholder="Background Image"
-							value={backgroundImage}
-							onChange={e => setBackgroundImage(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Logo Image</label>
-						<InputText
-							className="form-control"
-							placeholder="Logo Image"
-							value={logoImage}
-							onChange={e => setLogoImage(e.target.value)}
-						/>
-					</Col>
-				</Row>
-				<Row className="mb-3">
-					<Col>
-						<label className="form-label">Course Duration</label>
-						<InputText
-							type="number"
-							className="form-control"
-							placeholder="Course Duration"
-							value={courseDuration}
-							onChange={e => setCourseDuration(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Fees</label>
-						<InputText
-							className="form-control"
-							placeholder="Fees"
-							value={fees}
-							onChange={e => setFees(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Application Start Date</label>
-						<InputText
-							type="date"
-							className="form-control"
-							placeholder="Application Start Date"
-							value={applicationStartDate}
-							onChange={e => setApplicationStartDate(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Intake</label>
-						<Chips
-							placeholder="Intake"
-							style={{ display: "block" }}
-							value={intake}
-							onChange={e => setIntake(e.value)}
-						/>
-					</Col>
-				</Row>
-				<Row>
-					<Col>
-						<label className="form-label">About</label>
-						<InputTextarea
-							autoResize
-							className="form-control"
-							placeholder="About"
-							value={about}
-							onChange={e => setAbout(e.target.value)}
-						/>
-					</Col>
-				</Row>
-				<hr />
-				<Row className="mt-3">
-					<h4 style={{ color: "#0d6efd" }}>Important Facts</h4>
-					<Col>
-						<label className="form-label">
-							Course Duration Fulltime (months)
-						</label>
-						<InputText
-							className="form-control"
-							placeholder="Course Duration Fulltime (months)"
-							value={courseDurationFulltime}
-							onChange={e => setCourseDurationFulltime(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">
-							Course Duration Internship (months)
-						</label>
-						<InputText
-							className="form-control"
-							placeholder="Course Duration Internship (months)"
-							value={courseDurationInternship}
-							onChange={e => setCourseDurationInternship(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">
-							Course Duration Overall (months)
-						</label>
-						<InputText
-							className="form-control"
-							placeholder="Course Duration Overall (months)"
-							value={courseDurationOverall}
-							onChange={e => setCourseDurationOverall(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Application End Date</label>
-						<InputText
-							type="date"
-							className="form-control"
-							placeholder="Application End Date"
-							value={applicationEndDate}
-							onChange={e => setApplicationEndDate(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Teaching Medium</label>
-						<Chips
-							placeholder="Teaching Medium"
-							style={{ display: "block" }}
-							value={teachingMedium}
-							onChange={e => setTeachingMedium(e.value)}
-						/>
-					</Col>
-				</Row>
-				<Row>
-					<Col>
-						<label className="form-label">Recognized By</label>
-						<Chips
-							placeholder="Recognized by"
-							style={{ display: "block" }}
-							value={recognizedBy}
-							onChange={e => setRecognizedBy(e.value)}
-						/>
-					</Col>
-				</Row>
-				<button
-					className="me-2 btn btn-primary"
-					type="button"
-					onClick={() =>
-						setRanking([...ranking, { rankingBody: "", rank: "" }])
-					}
+			{isLoading ? (
+				<div
+					className="d-flex justify-content-center align-items-center"
+					style={{ height: "100vh" }}
 				>
-					Add Rank
-				</button>
-				<form>
-					{ranking?.map((body, index) => {
-						return (
-							<Row key={index} className="w-50">
-								<Col>
-									<InputText
-										className="form-control"
-										placeholder="Ranking Body"
-										name="rankingBody"
-										value={body?.rankingBody}
-										onChange={e => handleChange(e, index)}
-									/>
-								</Col>
-								<Col>
-									<InputText
-										className="form-control"
-										placeholder="Rank"
-										name="rank"
-										value={body?.rank}
-										onChange={e => handleChange(e, index)}
-									/>
-								</Col>
-								<Col>
-									<button
-										className="me-2 btn btn-danger"
-										type="button"
-										onClick={() => removeFormData(index)}
-									>
-										Remove
-									</button>
-								</Col>
-							</Row>
-						);
-					})}
-				</form>
-				<hr />
-				<Row className="mt-3">
-					<h4 style={{ color: "#0d6efd" }}>Overview</h4>
-					<SunEditor
-						plugin=""
-						setContents={overview}
-						onChange={setOverview}
-						setOptions={{
-							buttonList: [
-								["undo", "redo"],
-								["font", "fontSize"],
-								["paragraphStyle", "blockquote"],
-								[
-									"bold",
-									"underline",
-									"italic",
-									"strike",
-									"subscript",
-									"superscript",
-								],
-								["fontColor", "hiliteColor"],
-								["align", "list", "lineHeight"],
-								["outdent", "indent"],
-
-								["table", "horizontalRule", "link", "image", "video"],
-								// ['math'] //You must add the 'katex' library at options to use the 'math' plugin.
-								// ['imageGallery'], // You must add the "imageGalleryUrl".
-								["fullScreen", "showBlocks", "codeView"],
-								["preview", "print"],
-								["removeFormat"],
-
-								// ['save', 'template'],
-								// '/', Line break
-							], // Or Array of button list, eg. [['font', 'align'], ['image']]
-							defaultTag: "div",
-							minHeight: "300px",
-							showPathLabel: false,
-							font: sortedFontOptions,
-						}}
-					/>
-				</Row>
-				<Row>
-					<Col>
-						<label className="form-label">Video Links</label>
-						<Chips
-							placeholder="Video Links"
-							style={{ display: "block" }}
-							value={videoLinks}
-							onChange={e => setVideoLinks(e.value)}
+					<Space size="middle">
+						<Spin tip="Loading..." size="large" />
+					</Space>
+				</div>
+			) : (
+				<div className="p-5">
+					<button
+						className="btn btn-link align-self-end mb-3 ms-2"
+						onClick={() => navigate("/dashboard")}
+						style={{ border: "1px solid black" }}
+					>
+						<MdArrowBackIosNew
+							style={{
+								fontSize: "2rem",
+								color: "black",
+							}}
 						/>
-					</Col>
-					<Col>
-						<label className="form-label">Facilities</label>
-						<Chips
-							placeholder="Facilities"
-							style={{ display: "block" }}
-							value={facilities}
-							onChange={e => setFacilities(e.value)}
-						/>
-					</Col>
-				</Row>
-				<hr />
-				<Row className="mt-3">
-					<h4 style={{ color: "#0d6efd" }}>Admission Criteria</h4>
-					<SunEditor
-						plugin=""
-						setContents={admissionCriteria}
-						onChange={setAdmissionCriteria}
-						setOptions={{
-							buttonList: [
-								["undo", "redo"],
-								["font", "fontSize"],
-								["paragraphStyle", "blockquote"],
-								[
-									"bold",
-									"underline",
-									"italic",
-									"strike",
-									"subscript",
-									"superscript",
-								],
-								["fontColor", "hiliteColor"],
-								["align", "list", "lineHeight"],
-								["outdent", "indent"],
-
-								["table", "horizontalRule", "link", "image", "video"],
-								// ['math'] //You must add the 'katex' library at options to use the 'math' plugin.
-								// ['imageGallery'], // You must add the "imageGalleryUrl".
-								["fullScreen", "showBlocks", "codeView"],
-								["preview", "print"],
-								["removeFormat"],
-
-								// ['save', 'template'],
-								// '/', Line break
-							], // Or Array of button list, eg. [['font', 'align'], ['image']]
-							defaultTag: "div",
-							minHeight: "300px",
-							showPathLabel: false,
-							font: sortedFontOptions,
-						}}
-					/>
-				</Row>
-				<hr />
-				<Row className="mt-3">
-					<h4 style={{ color: "#0d6efd" }}>Fee Structure</h4>
-					<Col>
-						<label className="form-label">First Year Fees</label>
-						<InputText
-							type="number"
-							className="form-control"
-							placeholder="First Year Fees"
-							value={firstYearFees}
-							onChange={e => setFirstYearFees(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Total Package</label>
-						<InputText
-							type="number"
-							className="form-control"
-							placeholder="Total Package"
-							value={totalPackage}
-							onChange={e => setTotalPackage(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Second to Sixth Year Fees</label>
-						<InputText
-							type="number"
-							className="form-control"
-							placeholder="Second to Sixth Year Fees"
-							value={secondToSixthYearFees}
-							onChange={e => setSecondToSixthYearFees(e.target.value)}
-						/>
-					</Col>
-					<Col>
-						<label className="form-label">Currrency</label>
-						<InputText
-							className="form-control"
-							placeholder="Currrency"
-							value={currency}
-							onChange={e => setCurrency(e.target.value)}
-						/>
-					</Col>
-				</Row>
-				<Row>
-					<SunEditor
-						plugin=""
-						setContents={feestructure}
-						onChange={setFeeStructure}
-						setOptions={{
-							buttonList: [
-								["undo", "redo"],
-								["font", "fontSize"],
-								["paragraphStyle", "blockquote"],
-								[
-									"bold",
-									"underline",
-									"italic",
-									"strike",
-									"subscript",
-									"superscript",
-								],
-								["fontColor", "hiliteColor"],
-								["align", "list", "lineHeight"],
-								["outdent", "indent"],
-
-								["table", "horizontalRule", "link", "image", "video"],
-								// ['math'] //You must add the 'katex' library at options to use the 'math' plugin.
-								// ['imageGallery'], // You must add the "imageGalleryUrl".
-								["fullScreen", "showBlocks", "codeView"],
-								["preview", "print"],
-								["removeFormat"],
-
-								// ['save', 'template'],
-								// '/', Line break
-							], // Or Array of button list, eg. [['font', 'align'], ['image']]
-							defaultTag: "div",
-							minHeight: "300px",
-							showPathLabel: false,
-							font: sortedFontOptions,
-						}}
-					/>
-				</Row>
-				<hr />
-
-				<Row>
-					<h4 style={{ color: "#0d6efd" }}>Syllabus</h4>
-					<div className="mt-3">
-						<button
-							className="w-50 btn btn-primary"
-							type="button"
-							onClick={() =>
-								setsyllabus([...syllabus, { title: "", courses: "" }])
-							}
-						>
-							Add Syllabus
-						</button>
-					</div>
-
+					</button>
+					<Row className="mb-3">
+						<Col>
+							<label className="form-label">College Name</label>
+							<InputText
+								className="form-control"
+								placeholder="College Name"
+								value={collegeName}
+								onChange={e => setCollegeName(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Course Id</label>
+							<InputText
+								className="form-control"
+								placeholder="Course Id"
+								value={courseIdNew}
+								onChange={e => setCourseIdNew(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">College Id</label>
+							<InputText
+								className="form-control"
+								placeholder="College Id"
+								value={collegeId}
+								onChange={e => setCollegeId(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">City</label>
+							<InputText
+								className="form-control"
+								placeholder="City"
+								value={cityName}
+								onChange={e => setCityName(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Country</label>
+							<InputText
+								className="form-control"
+								placeholder="Country"
+								value={countryName}
+								onChange={e => setCountryName(e.target.value)}
+							/>
+						</Col>
+					</Row>
+					<Row className="mb-3">
+						<Col>
+							<label className="form-label">University Type</label>
+							<InputText
+								className="form-control"
+								placeholder="University Type"
+								value={universityType}
+								onChange={e => setUniversityType(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Establishment Year</label>
+							<InputText
+								className="form-control"
+								type="number"
+								placeholder="Establishment Year"
+								value={establishmentYear}
+								onChange={e => setEstablishmentYear(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Brochure Link</label>
+							<InputText
+								className="form-control"
+								placeholder="Brochure Link"
+								value={brochureLink}
+								onChange={e => setBrochureLink(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Background Image</label>
+							<InputText
+								className="form-control"
+								placeholder="Background Image"
+								value={backgroundImage}
+								onChange={e => setBackgroundImage(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Logo Image</label>
+							<InputText
+								className="form-control"
+								placeholder="Logo Image"
+								value={logoImage}
+								onChange={e => setLogoImage(e.target.value)}
+							/>
+						</Col>
+					</Row>
+					<Row className="mb-3">
+						<Col>
+							<label className="form-label">Course Duration</label>
+							<InputText
+								type="number"
+								className="form-control"
+								placeholder="Course Duration"
+								value={courseDuration}
+								onChange={e => setCourseDuration(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Fees</label>
+							<InputText
+								className="form-control"
+								placeholder="Fees"
+								value={fees}
+								onChange={e => setFees(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Application Start Date</label>
+							<InputText
+								type="date"
+								className="form-control"
+								placeholder="Application Start Date"
+								value={applicationStartDate}
+								onChange={e => setApplicationStartDate(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Intake</label>
+							<Chips
+								placeholder="Intake"
+								style={{ display: "block" }}
+								value={intake}
+								onChange={e => setIntake(e.value)}
+							/>
+						</Col>
+					</Row>
+					<Row>
+						<Col>
+							<label className="form-label">About</label>
+							<InputTextarea
+								autoResize
+								className="form-control"
+								placeholder="About"
+								value={about}
+								onChange={e => setAbout(e.target.value)}
+							/>
+						</Col>
+					</Row>
+					<hr />
+					<Row className="mt-3">
+						<h4 style={{ color: "#0d6efd" }}>Important Facts</h4>
+						<Col>
+							<label className="form-label">
+								Course Duration Fulltime (months)
+							</label>
+							<InputText
+								className="form-control"
+								placeholder="Course Duration Fulltime (months)"
+								value={courseDurationFulltime}
+								onChange={e => setCourseDurationFulltime(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">
+								Course Duration Internship (months)
+							</label>
+							<InputText
+								className="form-control"
+								placeholder="Course Duration Internship (months)"
+								value={courseDurationInternship}
+								onChange={e => setCourseDurationInternship(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">
+								Course Duration Overall (months)
+							</label>
+							<InputText
+								className="form-control"
+								placeholder="Course Duration Overall (months)"
+								value={courseDurationOverall}
+								onChange={e => setCourseDurationOverall(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Application End Date</label>
+							<InputText
+								type="date"
+								className="form-control"
+								placeholder="Application End Date"
+								value={applicationEndDate}
+								onChange={e => setApplicationEndDate(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Teaching Medium</label>
+							<Chips
+								placeholder="Teaching Medium"
+								style={{ display: "block" }}
+								value={teachingMedium}
+								onChange={e => setTeachingMedium(e.value)}
+							/>
+						</Col>
+					</Row>
+					<Row>
+						<Col>
+							<label className="form-label">Recognized By</label>
+							<Chips
+								placeholder="Recognized by"
+								style={{ display: "block" }}
+								value={recognizedBy}
+								onChange={e => setRecognizedBy(e.value)}
+							/>
+						</Col>
+					</Row>
+					<button
+						className="me-2 btn btn-primary"
+						type="button"
+						onClick={() =>
+							setRanking([...ranking, { rankingBody: "", rank: "" }])
+						}
+					>
+						Add Rank
+					</button>
 					<form>
-						{syllabus?.map((body, index) => {
+						{ranking?.map((body, index) => {
 							return (
-								<Row key={index} className="mt-3">
+								<Row key={index} className="w-50">
 									<Col>
 										<InputText
 											className="form-control"
-											placeholder="Title"
-											name="title"
-											value={body?.title}
-											onChange={e => handleSyllabusChange(e, index)}
+											placeholder="Ranking Body"
+											name="rankingBody"
+											value={body?.rankingBody}
+											onChange={e => handleChange(e, index)}
 										/>
 									</Col>
 									<Col>
-										<Chips
-											name="courses"
-											placeholder="Courses"
-											style={{ display: "block" }}
-											value={body?.courses}
-											onChange={e => handleSyllabusChange(e, index)}
+										<InputText
+											className="form-control"
+											placeholder="Rank"
+											name="rank"
+											value={body?.rank}
+											onChange={e => handleChange(e, index)}
 										/>
 									</Col>
 									<Col>
 										<button
 											className="me-2 btn btn-danger"
 											type="button"
-											onClick={() => removeSyllabusFormData(index)}
+											onClick={() => removeFormData(index)}
 										>
 											Remove
 										</button>
@@ -696,7 +513,242 @@ const MbbsDetails = props => {
 							);
 						})}
 					</form>
-					{/* <Col>
+					<hr />
+					<Row className="mt-3">
+						<h4 style={{ color: "#0d6efd" }}>Overview</h4>
+						<SunEditor
+							plugin=""
+							setContents={overview}
+							onChange={setOverview}
+							setOptions={{
+								buttonList: [
+									["undo", "redo"],
+									["font", "fontSize"],
+									["paragraphStyle", "blockquote"],
+									[
+										"bold",
+										"underline",
+										"italic",
+										"strike",
+										"subscript",
+										"superscript",
+									],
+									["fontColor", "hiliteColor"],
+									["align", "list", "lineHeight"],
+									["outdent", "indent"],
+
+									["table", "horizontalRule", "link", "image", "video"],
+									// ['math'] //You must add the 'katex' library at options to use the 'math' plugin.
+									// ['imageGallery'], // You must add the "imageGalleryUrl".
+									["fullScreen", "showBlocks", "codeView"],
+									["preview", "print"],
+									["removeFormat"],
+
+									// ['save', 'template'],
+									// '/', Line break
+								], // Or Array of button list, eg. [['font', 'align'], ['image']]
+								defaultTag: "div",
+								minHeight: "300px",
+								showPathLabel: false,
+								font: sortedFontOptions,
+							}}
+						/>
+					</Row>
+					<Row>
+						<Col>
+							<label className="form-label">Video Links</label>
+							<Chips
+								placeholder="Video Links"
+								style={{ display: "block" }}
+								value={videoLinks}
+								onChange={e => setVideoLinks(e.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Facilities</label>
+							<Chips
+								placeholder="Facilities"
+								style={{ display: "block" }}
+								value={facilities}
+								onChange={e => setFacilities(e.value)}
+							/>
+						</Col>
+					</Row>
+					<hr />
+					<Row className="mt-3">
+						<h4 style={{ color: "#0d6efd" }}>Admission Criteria</h4>
+						<SunEditor
+							plugin=""
+							setContents={admissionCriteria}
+							onChange={setAdmissionCriteria}
+							setOptions={{
+								buttonList: [
+									["undo", "redo"],
+									["font", "fontSize"],
+									["paragraphStyle", "blockquote"],
+									[
+										"bold",
+										"underline",
+										"italic",
+										"strike",
+										"subscript",
+										"superscript",
+									],
+									["fontColor", "hiliteColor"],
+									["align", "list", "lineHeight"],
+									["outdent", "indent"],
+
+									["table", "horizontalRule", "link", "image", "video"],
+									// ['math'] //You must add the 'katex' library at options to use the 'math' plugin.
+									// ['imageGallery'], // You must add the "imageGalleryUrl".
+									["fullScreen", "showBlocks", "codeView"],
+									["preview", "print"],
+									["removeFormat"],
+
+									// ['save', 'template'],
+									// '/', Line break
+								], // Or Array of button list, eg. [['font', 'align'], ['image']]
+								defaultTag: "div",
+								minHeight: "300px",
+								showPathLabel: false,
+								font: sortedFontOptions,
+							}}
+						/>
+					</Row>
+					<hr />
+					<Row className="mt-3">
+						<h4 style={{ color: "#0d6efd" }}>Fee Structure</h4>
+						<Col>
+							<label className="form-label">First Year Fees</label>
+							<InputText
+								type="number"
+								className="form-control"
+								placeholder="First Year Fees"
+								value={firstYearFees}
+								onChange={e => setFirstYearFees(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Total Package</label>
+							<InputText
+								type="number"
+								className="form-control"
+								placeholder="Total Package"
+								value={totalPackage}
+								onChange={e => setTotalPackage(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Second to Sixth Year Fees</label>
+							<InputText
+								type="number"
+								className="form-control"
+								placeholder="Second to Sixth Year Fees"
+								value={secondToSixthYearFees}
+								onChange={e => setSecondToSixthYearFees(e.target.value)}
+							/>
+						</Col>
+						<Col>
+							<label className="form-label">Currrency</label>
+							<InputText
+								className="form-control"
+								placeholder="Currrency"
+								value={currency}
+								onChange={e => setCurrency(e.target.value)}
+							/>
+						</Col>
+					</Row>
+					<Row>
+						<SunEditor
+							plugin=""
+							setContents={feestructure}
+							onChange={setFeeStructure}
+							setOptions={{
+								buttonList: [
+									["undo", "redo"],
+									["font", "fontSize"],
+									["paragraphStyle", "blockquote"],
+									[
+										"bold",
+										"underline",
+										"italic",
+										"strike",
+										"subscript",
+										"superscript",
+									],
+									["fontColor", "hiliteColor"],
+									["align", "list", "lineHeight"],
+									["outdent", "indent"],
+
+									["table", "horizontalRule", "link", "image", "video"],
+									// ['math'] //You must add the 'katex' library at options to use the 'math' plugin.
+									// ['imageGallery'], // You must add the "imageGalleryUrl".
+									["fullScreen", "showBlocks", "codeView"],
+									["preview", "print"],
+									["removeFormat"],
+
+									// ['save', 'template'],
+									// '/', Line break
+								], // Or Array of button list, eg. [['font', 'align'], ['image']]
+								defaultTag: "div",
+								minHeight: "300px",
+								showPathLabel: false,
+								font: sortedFontOptions,
+							}}
+						/>
+					</Row>
+					<hr />
+
+					<Row>
+						<h4 style={{ color: "#0d6efd" }}>Syllabus</h4>
+						<div className="mt-3">
+							<button
+								className="w-50 btn btn-primary"
+								type="button"
+								onClick={() =>
+									setsyllabus([...syllabus, { title: "", courses: "" }])
+								}
+							>
+								Add Syllabus
+							</button>
+						</div>
+
+						<form>
+							{syllabus?.map((body, index) => {
+								return (
+									<Row key={index} className="mt-3">
+										<Col>
+											<InputText
+												className="form-control"
+												placeholder="Title"
+												name="title"
+												value={body?.title}
+												onChange={e => handleSyllabusChange(e, index)}
+											/>
+										</Col>
+										<Col>
+											<Chips
+												name="courses"
+												placeholder="Courses"
+												style={{ display: "block" }}
+												value={body?.courses}
+												onChange={e => handleSyllabusChange(e, index)}
+											/>
+										</Col>
+										<Col>
+											<button
+												className="me-2 btn btn-danger"
+												type="button"
+												onClick={() => removeSyllabusFormData(index)}
+											>
+												Remove
+											</button>
+										</Col>
+									</Row>
+								);
+							})}
+						</form>
+						{/* <Col>
             <label className='form-label'>Title</label>
             <InputText
               placeholder='Title'
@@ -714,19 +766,20 @@ const MbbsDetails = props => {
               onChange={(e) => setCourses(e.value)}
             />
           </Col> */}
-				</Row>
-				<br />
-				<Row className="d-flex flex-1 flex-grow-1 justify-content-center align-items-center">
-					<button
-						className="btn btn-primary align-self-center"
-						type="button"
-						onClick={() => saveDetails()}
-						style={{ width: 150 }}
-					>
-						Save Details
-					</button>
-				</Row>
-			</div>
+					</Row>
+					<br />
+					<Row className="d-flex flex-1 flex-grow-1 justify-content-center align-items-center">
+						<button
+							className="btn btn-primary align-self-center"
+							type="button"
+							onClick={() => saveDetails()}
+							style={{ width: 150 }}
+						>
+							Save Details
+						</button>
+					</Row>
+				</div>
+			)}
 		</>
 	);
 };

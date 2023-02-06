@@ -1,5 +1,5 @@
 import { default as React } from "react";
-import { MdLogout } from "react-icons/md";
+import { MdHome, MdLogout } from "react-icons/md";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { userLogout } from "../actions/user";
@@ -12,10 +12,10 @@ function Navbar() {
 			<div className="d-flex flex-1 flex-grow-1 justify-content-between align-items-center">
 				<div className="ms-5">
 					<button
-						className="btn btn-primary"
+						className="btn btn-link"
 						onClick={() => navigate("/dashboard")}
 					>
-						Home
+						<MdHome style={{ fontSize: "2rem", color: "black" }} />
 					</button>
 				</div>
 				<div className="me-5">

@@ -1,6 +1,7 @@
 import { Table } from "antd";
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import { MdArrowBackIosNew } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { base_url } from "../actions/baseUrls";
 import Navbar from "./Navbar";
@@ -89,12 +90,26 @@ const Mbbs = () => {
 		<>
 			<Navbar />
 			<div className="container d-flex justify-content-center flex-column mt-5">
-				<button
-					className="btn btn-primary align-self-end mb-3"
-					onClick={() => navigate("/mbbs/create")}
-				>
-					Add New College
-				</button>
+				<div className="d-flex justify-content-between">
+					<button
+						className="btn btn-link align-self-end mb-3 ms-2"
+						onClick={() => navigate("/dashboard")}
+						style={{ border: "1px solid black" }}
+					>
+						<MdArrowBackIosNew
+							style={{
+								fontSize: "2rem",
+								color: "black",
+							}}
+						/>
+					</button>
+					<button
+						className="btn btn-primary align-self-end mb-3 me-2"
+						onClick={() => navigate("/mbbs/create")}
+					>
+						Add New College
+					</button>{" "}
+				</div>
 				<Table
 					dataSource={dataSource}
 					columns={columns}
