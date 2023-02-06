@@ -192,12 +192,14 @@ const MbbsDetails = props => {
 			},
 			syllabus: syllabus,
 		};
-		dbId && data.push(dbId);
+		if (dbId) data.dbId = dbId;
+
 		axios
 			.post(`${base_url}/mbbs/save`, data)
 			.then(res => {
 				let data = res?.data;
 				if (data) {
+					console.log(data);
 				}
 			})
 			.catch(err => console.log(err));

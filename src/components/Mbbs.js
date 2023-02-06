@@ -22,11 +22,27 @@ const Mbbs = () => {
 			dataIndex: "name",
 			key: "name",
 			width: 300,
+			sorter: {
+				compare: (a, b) => {
+					if (a.name.toLowerCase() < b.name.toLowerCase()) return -1;
+					if (b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+					return 0;
+				},
+				// multiple: 1,
+			},
 		},
 		{
 			title: "Country",
 			dataIndex: "country",
 			key: "country",
+			sorter: {
+				compare: (a, b) => {
+					if (a.country.toLowerCase() < b.country.toLowerCase()) return -1;
+					if (b.country.toLowerCase() < a.country.toLowerCase()) return 1;
+					return 0;
+				},
+				// multiple: 2,
+			},
 			width: 200,
 		},
 		{
