@@ -1,6 +1,8 @@
-import { Table } from "antd";
+import { SearchOutlined } from "@ant-design/icons";
+import { Button, Input, Space, Table } from "antd";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Modal } from "react-bootstrap";
 import { MdArrowBackIosNew } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import { base_url } from "../actions/baseUrls";
@@ -10,11 +12,116 @@ const Mbbs = () => {
 	const navigate = useNavigate();
 	const [dataSource, setDataSource] = useState([]);
 
-	useEffect(() => {
+	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [collegeDetails, setCollegeDetails] = useState({});
+	const showModal = () => {
+		setIsModalOpen(true);
+	};
+
+	const handleClose = () => {
+		setIsModalOpen(false);
+	};
+
+	const [searchText, setSearchText] = useState("");
+	const [searchedColumn, setSearchedColumn] = useState("");
+	const searchInput = useRef(null);
+	const handleSearch = (selectedKeys, confirm, dataIndex) => {
+		confirm();
+		setSearchText(selectedKeys[0]);
+		setSearchedColumn(dataIndex);
+	};
+	const handleReset = clearFilters => {
+		clearFilters();
+		setSearchText("");
+	};
+	const getColumnSearchProps = dataIndex => ({
+		filterDropdown: ({
+			setSelectedKeys,
+			selectedKeys,
+			confirm,
+			clearFilters,
+		}) => (
+			<div
+				style={{
+					padding: 8,
+				}}
+				onKeyDown={e => e.stopPropagation()}
+			>
+				<Input
+					ref={searchInput}
+					placeholder={`Search ${dataIndex}`}
+					value={selectedKeys[0]}
+					onChange={e =>
+						setSelectedKeys(e.target.value ? [e.target.value] : [])
+					}
+					onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
+					style={{
+						marginBottom: 8,
+						display: "block",
+					}}
+				/>
+				<Space>
+					<Button
+						type="primary"
+						onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
+						icon={<SearchOutlined />}
+						size="small"
+						style={{
+							width: 90,
+						}}
+					>
+						Search
+					</Button>
+					<Button
+						onClick={() => clearFilters && handleReset(clearFilters)}
+						size="small"
+						style={{
+							width: 90,
+						}}
+					>
+						Reset
+					</Button>
+				</Space>
+			</div>
+		),
+		filterIcon: filtered => (
+			<SearchOutlined
+				style={{
+					color: filtered ? "#1890ff" : undefined,
+					fontSize: "1rem",
+				}}
+			/>
+		),
+		onFilter: (value, record) =>
+			record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
+		onFilterDropdownOpenChange: visible => {
+			if (visible) {
+				setTimeout(() => searchInput.current?.select(), 100);
+			}
+		},
+	});
+
+	const fetchAllColleges = () => {
 		axios
 			.get(`${base_url}/all-mbbs-college`)
 			.then(res => setDataSource(res.data.mbbsColleges))
 			.catch(err => console.log(err));
+	};
+
+	const handleDelete = () => {
+		axios
+			.delete(`${base_url}/mbbs/course`, { data: collegeDetails })
+			.then(res => {
+				if (res.data.success) {
+					fetchAllColleges();
+					setIsModalOpen(false);
+				}
+			})
+			.catch(err => console.log(err));
+	};
+
+	useEffect(() => {
+		fetchAllColleges();
 	}, []);
 
 	const columns = [
@@ -29,34 +136,50 @@ const Mbbs = () => {
 					if (b.name.toLowerCase() < a.name.toLowerCase()) return 1;
 					return 0;
 				},
-				// multiple: 1,
 			},
+			...getColumnSearchProps("name"),
 		},
 		{
 			title: "Country",
 			dataIndex: "country",
 			key: "country",
+			width: 200,
 			sorter: {
 				compare: (a, b) => {
 					if (a.country.toLowerCase() < b.country.toLowerCase()) return -1;
 					if (b.country.toLowerCase() < a.country.toLowerCase()) return 1;
 					return 0;
 				},
-				// multiple: 2,
 			},
-			width: 200,
+			...getColumnSearchProps("country"),
 		},
 		{
 			title: "College ID",
 			dataIndex: "collegeId",
 			key: "collegeId",
 			width: 200,
+			sorter: {
+				compare: (a, b) => {
+					if (a.collegeId.toLowerCase() < b.collegeId.toLowerCase()) return -1;
+					if (b.collegeId.toLowerCase() < a.collegeId.toLowerCase()) return 1;
+					return 0;
+				},
+			},
+			...getColumnSearchProps("collegeId"),
 		},
 		{
 			title: "Course ID",
 			dataIndex: "courseId",
 			key: "courseId",
 			width: 200,
+			sorter: {
+				compare: (a, b) => {
+					if (a.courseId.toLowerCase() < b.courseId.toLowerCase()) return -1;
+					if (b.courseId.toLowerCase() < a.courseId.toLowerCase()) return 1;
+					return 0;
+				},
+			},
+			...getColumnSearchProps("courseId"),
 		},
 		{
 			title: "Actions",
@@ -67,16 +190,22 @@ const Mbbs = () => {
 				return (
 					<>
 						<button
-							className="btn btn-link align-self-end mb-2"
+							className="btn btn-link"
 							onClick={() => navigate(`/mbbs/${data?.courseId}`)}
-							style={{ width: 100, textDecoration: "none" }}
+							style={{ textDecoration: "none" }}
 						>
 							Edit
 						</button>
 						<button
-							className="btn btn-link align-self-end mb-2"
-							// onClick={() => navigate(`/mbbs/${data?.courseId}`)}
-							style={{ width: 100, textDecoration: "none", color: "red" }}
+							className="btn btn-link"
+							onClick={() => {
+								setCollegeDetails({
+									dbId: data?.dbId,
+									courseId: data?.courseId,
+								});
+								showModal();
+							}}
+							style={{ textDecoration: "none", color: "red" }}
 						>
 							Delete
 						</button>
@@ -113,10 +242,41 @@ const Mbbs = () => {
 				<Table
 					dataSource={dataSource}
 					columns={columns}
-					rowKey={dataSource => dataSource?.courseId}
+					rowKey={dataSource => dataSource?.dbId}
 					pagination={false}
 					bordered
 				/>
+
+				<Modal
+					show={isModalOpen}
+					onHide={handleClose}
+					backdrop="static"
+					keyboard={false}
+					centered
+				>
+					<Modal.Header closeButton>
+						<Modal.Title>Confirm Delete</Modal.Title>
+					</Modal.Header>
+					<Modal.Body>
+						<p>Are you sure you want to delete this college?</p>
+					</Modal.Body>
+					<Modal.Footer>
+						<button
+							className="btn btn-secondary"
+							type="button"
+							onClick={handleClose}
+						>
+							Close
+						</button>
+						<button
+							className="btn btn-danger ms-3 align-self-center fs-7 fw-500"
+							type="button"
+							onClick={() => handleDelete()}
+						>
+							Delete
+						</button>
+					</Modal.Footer>
+				</Modal>
 			</div>
 		</>
 	);

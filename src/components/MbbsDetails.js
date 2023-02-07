@@ -3,7 +3,7 @@ import axios from "axios";
 import { Chips } from "primereact/chips";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { MdArrowBackIosNew } from "react-icons/md";
 import { useDispatch } from "react-redux";
@@ -79,9 +79,9 @@ const MbbsDetails = () => {
 
 	const [ranking, setRanking] = useState([{ rankingBody: "", rank: "" }]);
 
-	const fetchData = () => {
-		setIsLoading(true);
-		if (courseId && courseId !== "create")
+	const fetchData = useCallback(() => {
+		if (courseId && courseId !== "create") {
+			setIsLoading(true);
 			axios
 				.post(`${base_url}/get-mbbs-course-details`, { courseId: courseId })
 				.then(res => {
@@ -137,11 +137,12 @@ const MbbsDetails = () => {
 					setIsLoading(false);
 				})
 				.catch(err => console.log(err));
-	};
+		}
+	}, [courseId]);
 
 	useEffect(() => {
 		fetchData();
-	}, [courseId]);
+	}, [courseId, fetchData]);
 
 	const handleChange = (e, i) => {
 		const newRanking = ranking;
@@ -245,7 +246,7 @@ const MbbsDetails = () => {
 				<div className="p-5">
 					<button
 						className="btn btn-link align-self-end mb-3 ms-2"
-						onClick={() => navigate("/dashboard")}
+						onClick={() => navigate("/mbbs")}
 						style={{ border: "1px solid black" }}
 					>
 						<MdArrowBackIosNew
