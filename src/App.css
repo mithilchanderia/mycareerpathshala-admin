@@ -27,3 +27,8 @@
 .ant-notification-notice-close {
 	color: var(--custom-white) !important;
 }
+
+.p-disabled,
+.p-component:disabled {
+	opacity: 1;
+}

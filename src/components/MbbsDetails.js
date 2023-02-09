@@ -1,8 +1,10 @@
 import { Space, Spin } from "antd";
 import axios from "axios";
 import { Chips } from "primereact/chips";
+import { Dropdown } from "primereact/dropdown";
 import { InputText } from "primereact/inputtext";
 import { InputTextarea } from "primereact/inputtextarea";
+import { MultiSelect } from "primereact/multiselect";
 import React, { useCallback, useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { MdArrowBackIosNew } from "react-icons/md";
@@ -46,20 +48,25 @@ const MbbsDetails = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [collegeName, setCollegeName] = useState("");
 	const [collegeId, setCollegeId] = useState("");
-	const [courseIdNew, setCourseIdNew] = useState("");
 	const [dbId, setDbId] = useState("");
 	const [cityName, setCityName] = useState("");
 	const [countryName, setCountryName] = useState("");
 	const [universityType, setUniversityType] = useState("");
 	const [establishmentYear, setEstablishmentYear] = useState("");
 	const [brochureLink, setBrochureLink] = useState("");
-	const [backgroundImage, setBackgroundImage] = useState("");
-	const [logoImage, setLogoImage] = useState("");
+	const [backgroundImage, setBackgroundImage] = useState(
+		"https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+	);
+	const [logoImage, setLogoImage] = useState(
+		"https://static.vecteezy.com/system/resources/previews/005/260/727/original/college-graduate-icon-free-vector.jpg"
+	);
 	const [about, setAbout] = useState("");
 	const [courseDuration, setCourseDuration] = useState("");
 	const [fees, setFees] = useState("");
 	const [intake, setIntake] = useState([]);
 	const [courseDurationFulltime, setCourseDurationFulltime] = useState("");
+	const [campusType, setCampusType] = useState("");
+	const [campusLocation, setCampusLocation] = useState("");
 	const [courseDurationInternship, setCourseDurationInternship] = useState("");
 	const [courseDurationOverall, setCourseDurationOverall] = useState("");
 	const [applicationStartDate, setApplicationStartDate] = useState("");
@@ -73,11 +80,89 @@ const MbbsDetails = () => {
 	const [secondToSixthYearFees, setSecondToSixthYearFees] = useState("");
 	const [currency, setCurrency] = useState("");
 	const [syllabus, setsyllabus] = useState([{ title: "", courses: [] }]);
+	const [images, setImages] = useState([{ imgCaption: "", imgLink: "" }]);
+	const [videos, setVideos] = useState([]);
 	const [overview, setOverview] = useState(htmlWithTable);
 	const [admissionCriteria, setAdmissionCriteria] = useState(htmlWithTable2);
 	const [feestructure, setFeeStructure] = useState(htmlWithTable3);
 
+	const [countriesOptions, setCountriesOptions] = useState([]);
+	const [currencyOptions, setCurrencyOptions] = useState([]);
+	const [campusLocationOptions, setCampusLocationOptions] = useState([]);
+	const [campusTypeOptions, setCampusTypeOptions] = useState([]);
+	const [universityTypeOptions, setUniversityTypeOptions] = useState([]);
+	const [facilitiesOptions, setFacilitiesOptions] = useState([]);
+	const [teachingMediumOptions, setTeachingMediumOptions] = useState([]);
+	const [recognizedByOptions, setRecognizedByOptions] = useState([]);
+	const [intakeOptions, setIntakeOptions] = useState([]);
 	const [ranking, setRanking] = useState([{ rankingBody: "", rank: "" }]);
+
+	console.log(images, videos);
+
+	const fetchDropdown = () => {
+		axios
+			.post(`${base_url}/field-options/multiple`, {
+				fieldOptions: [
+					{
+						page: "collegeFilters",
+						label: "campusType",
+					},
+					{
+						page: "collegeFilters",
+						label: "campusLocation",
+					},
+					{
+						page: "collegeFilters",
+						label: "intakeMonthYear",
+					},
+					{
+						page: "collegeOptions",
+						label: "teachingMedium",
+					},
+					{
+						page: "mbbsOptions",
+						label: "recognizedBy",
+					},
+					{
+						page: "collegeOptions",
+						label: "facilities",
+					},
+					{
+						page: "all",
+						label: "countries",
+					},
+					{
+						page: "collegeFilters",
+						label: "universityType",
+					},
+					{
+						page: "all",
+						label: "currency",
+					},
+				],
+			})
+			.then(res => {
+				setCountriesOptions(res?.data?.all?.countries?.options);
+				setCurrencyOptions(res?.data?.all?.currency?.options);
+				setCampusLocationOptions(
+					res?.data?.collegeFilters?.campusLocation?.options
+				);
+				setCampusTypeOptions(res?.data?.collegeFilters?.campusType?.options);
+				setUniversityTypeOptions(
+					res?.data?.collegeFilters?.universityType?.options
+				);
+				setIntakeOptions(res?.data?.collegeFilters?.intakeMonthYear?.options);
+				setFacilitiesOptions(res?.data?.collegeOptions?.facilities?.options);
+				setTeachingMediumOptions(
+					res?.data?.collegeOptions?.teachingMedium?.options
+				);
+				setRecognizedByOptions(res?.data?.mbbsOptions?.recognizedBy?.options);
+			});
+	};
+
+	useEffect(() => {
+		fetchDropdown();
+	}, []);
 
 	const fetchData = useCallback(() => {
 		if (courseId && courseId !== "create") {
@@ -123,6 +208,8 @@ const MbbsDetails = () => {
 						);
 						setCurrency(data.feeStructure?.currency);
 						setTotalPackage(data.feeStructure?.totalPackage);
+						setCampusType(data?.campusType);
+						setCampusLocation(data?.campusLocation);
 						setRanking(
 							Object.keys(data.importantFacts?.ranking).map(key => ({
 								rankingBody: key,
@@ -131,14 +218,15 @@ const MbbsDetails = () => {
 						);
 						data?.syllabus && setsyllabus(data?.syllabus);
 						setCollegeId(data.collegeId);
-						setCourseIdNew(data.courseId);
 						setDbId(data.dbId);
+						setImages(data?.gallery?.images);
+						setVideos(data?.gallery?.videos);
 					}
 					setIsLoading(false);
 				})
 				.catch(err => console.log(err));
 		}
-	}, [courseId]);
+	}, []);
 
 	useEffect(() => {
 		fetchData();
@@ -154,6 +242,11 @@ const MbbsDetails = () => {
 		newSyllabus[i][e.target.name] = e.target.value;
 		setsyllabus([...newSyllabus]);
 	};
+	const handleImageChange = (e, i) => {
+		const newImages = images;
+		newImages[i][e.target.name] = e.target.value;
+		setImages([...newImages]);
+	};
 
 	const removeFormData = i => {
 		const newRanking = ranking.filter((f, index) => i !== index);
@@ -163,24 +256,28 @@ const MbbsDetails = () => {
 		const newSyllabus = syllabus.filter((f, index) => i !== index);
 		setsyllabus([...newSyllabus]);
 	};
+	const removeImagesFormData = i => {
+		const newImages = images.filter((f, index) => i !== index);
+		setImages([...newImages]);
+	};
 
 	const saveDetails = () => {
 		setIsLoading(true);
 		const data = {
-			collegeName: collegeName,
-			collegeId: collegeId,
-			courseId: courseIdNew,
-			city: cityName,
-			country: countryName,
-			universityType: universityType,
-			establishmentYear: establishmentYear,
-			brochureLink: brochureLink,
-			backgroundImg: backgroundImage,
-			logoImg: logoImage,
-			about: about,
-			courseDurationYears: courseDuration,
-			firstYearFees: firstYearFees,
-			intake: intake,
+			collegeName: collegeName || null,
+			city: cityName || null,
+			country: countryName || null,
+			universityType: universityType || null,
+			establishmentYear: establishmentYear || null,
+			brochureLink: brochureLink || null,
+			backgroundImg: backgroundImage || null,
+			logoImg: logoImage || null,
+			about: about || null,
+			courseDurationYears: courseDuration || null,
+			firstYearFees: firstYearFees || null,
+			intake: intake || null,
+			campusType: campusType || null,
+			campusLocation: campusLocation || null,
 			importantFacts: {
 				applicationStartDate: applicationStartDate?.length
 					? applicationStartDate
@@ -188,36 +285,46 @@ const MbbsDetails = () => {
 				applicationEndDate: applicationEndDate?.length
 					? applicationEndDate
 					: null,
-				courseDurationFulltimeMonths: courseDurationFulltime,
-				courseDurationInternshipMonths: courseDurationInternship,
-				courseDurationOverallMonths: courseDurationOverall,
-				recognizedBy: recognizedBy,
-				ranking: ranking,
-				teachingMedium: teachingMedium,
+				courseDurationFulltimeMonths: courseDurationFulltime || null,
+				courseDurationInternshipMonths: courseDurationInternship || null,
+				courseDurationOverallMonths: courseDurationOverall || null,
+				recognizedBy: recognizedBy || null,
+				ranking: ranking || null,
+				teachingMedium: teachingMedium || null,
 			},
 			overview: {
-				content: overview,
-				videoLinks: videoLinks,
-				facilities: facilities,
+				content: overview || null,
+				videoLinks: videoLinks || null,
+				facilities: facilities || null,
 			},
-			admissionCriteria: admissionCriteria,
+			admissionCriteria: admissionCriteria || null,
 			feesStructure: {
-				firstYearFees: firstYearFees,
-				totalPackage: totalPackage,
-				secondToSixthYearFees: secondToSixthYearFees,
-				currency: currency,
-				content: feestructure,
+				firstYearFees: firstYearFees || null,
+				totalPackage: totalPackage || null,
+				secondToSixthYearFees: secondToSixthYearFees || null,
+				currency: currency || null,
+				content: feestructure || null,
 			},
-			syllabus: syllabus,
+			syllabus: syllabus || null,
+			gallery: { images, videos },
 		};
-		if (dbId) data.dbId = dbId;
+		if (dbId) {
+			data.dbId = dbId;
+			data.collegeId = collegeId;
+			data.courseId = courseId;
+		}
 
 		axios
 			.post(`${base_url}/mbbs/save`, data)
 			.then(res => {
 				let data = res?.data;
 				if (data?.success) {
-					navigate(`/mbbs/${courseIdNew}`);
+					if (courseId && courseId !== "create") {
+						navigate(`/mbbs/${courseId}`);
+					} else {
+						navigate(`/mbbs/`);
+					}
+					fetchData();
 					dispatch(
 						addNotification({
 							message: "College saved successfully",
@@ -258,65 +365,81 @@ const MbbsDetails = () => {
 					</button>
 					<Row className="mb-3">
 						<Col>
-							<label className="form-label">College Name</label>
+							<label className="d-block form-label">College Name</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="College Name"
 								value={collegeName}
 								onChange={e => setCollegeName(e.target.value)}
 							/>
 						</Col>
+						{courseId !== "create" && (
+							<>
+								<Col>
+									<label className="d-block form-label">Course Id</label>
+									<InputText
+										style={{ width: "100%" }}
+										placeholder="Course Id"
+										value={courseId}
+										disabled
+									/>
+								</Col>
+								<Col>
+									<label className="d-block form-label">College Id</label>
+									<InputText
+										style={{ width: "100%" }}
+										placeholder="College Id"
+										value={collegeId}
+										disabled
+									/>
+								</Col>
+							</>
+						)}
 						<Col>
-							<label className="form-label">Course Id</label>
+							<label className="d-block form-label">City</label>
 							<InputText
-								className="form-control"
-								placeholder="Course Id"
-								value={courseIdNew}
-								onChange={e => setCourseIdNew(e.target.value)}
-							/>
-						</Col>
-						<Col>
-							<label className="form-label">College Id</label>
-							<InputText
-								className="form-control"
-								placeholder="College Id"
-								value={collegeId}
-								onChange={e => setCollegeId(e.target.value)}
-							/>
-						</Col>
-						<Col>
-							<label className="form-label">City</label>
-							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="City"
 								value={cityName}
 								onChange={e => setCityName(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Country</label>
-							<InputText
-								className="form-control"
-								placeholder="Country"
+							<label className="d-block form-label">Country</label>
+							<Dropdown
+								style={{ width: "100%" }}
 								value={countryName}
-								onChange={e => setCountryName(e.target.value)}
+								onChange={e => setCountryName(e.value)}
+								options={countriesOptions}
+								placeholder="Country"
 							/>
 						</Col>
 					</Row>
 					<Row className="mb-3">
 						<Col>
-							<label className="form-label">University Type</label>
-							<InputText
-								className="form-control"
-								placeholder="University Type"
+							<label className="d-block form-label">University Type</label>
+							<Dropdown
+								style={{ width: "100%" }}
 								value={universityType}
-								onChange={e => setUniversityType(e.target.value)}
+								onChange={e => setUniversityType(e.value)}
+								options={universityTypeOptions}
+								placeholder="University Type"
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Establishment Year</label>
+							<label className="d-block form-label">Campus Type</label>
+							<Dropdown
+								style={{ width: "100%" }}
+								value={campusType}
+								onChange={e => setCampusType(e.value)}
+								options={campusTypeOptions}
+								placeholder="Campus Type"
+							/>
+						</Col>
+						<Col>
+							<label className="d-block form-label">Establishment Year</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								type="number"
 								placeholder="Establishment Year"
 								value={establishmentYear}
@@ -324,27 +447,27 @@ const MbbsDetails = () => {
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Brochure Link</label>
+							<label className="d-block form-label">Brochure Link</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Brochure Link"
 								value={brochureLink}
 								onChange={e => setBrochureLink(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Background Image</label>
+							<label className="d-block form-label">Background Image</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Background Image"
 								value={backgroundImage}
 								onChange={e => setBackgroundImage(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Logo Image</label>
+							<label className="d-block form-label">Logo Image</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Logo Image"
 								value={logoImage}
 								onChange={e => setLogoImage(e.target.value)}
@@ -353,50 +476,71 @@ const MbbsDetails = () => {
 					</Row>
 					<Row className="mb-3">
 						<Col>
-							<label className="form-label">Course Duration</label>
+							<label className="d-block form-label">
+								Course Duration (years)
+							</label>
 							<InputText
 								type="number"
-								className="form-control"
-								placeholder="Course Duration"
+								style={{ width: "100%" }}
+								placeholder="Course Duration(Years)"
 								value={courseDuration}
-								onChange={e => setCourseDuration(e.target.value)}
+								onChange={e => {
+									setCourseDurationFulltime(e.target.value * 12);
+									setCourseDurationOverall(
+										+e.target.value * 12 + +courseDurationInternship
+									);
+									return setCourseDuration(e.target.value);
+								}}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Fees</label>
+							<label className="d-block form-label">Fees</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Fees"
 								value={fees}
 								onChange={e => setFees(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Application Start Date</label>
+							<label className="d-block form-label">
+								Application Start Date
+							</label>
 							<InputText
 								type="date"
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Application Start Date"
 								value={applicationStartDate}
 								onChange={e => setApplicationStartDate(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Intake</label>
-							<Chips
-								placeholder="Intake"
-								style={{ display: "block" }}
+							<label className="d-block form-label">Intake</label>
+							<MultiSelect
 								value={intake}
+								style={{ width: "100%", maxWidth: 457 }}
 								onChange={e => setIntake(e.value)}
+								options={intakeOptions}
+								placeholder="Intake"
+							/>
+						</Col>
+						<Col>
+							<label className="d-block form-label">Campus Location</label>
+							<Dropdown
+								style={{ width: "100%" }}
+								value={campusLocation}
+								onChange={e => setCampusLocation(e.value)}
+								options={campusLocationOptions}
+								placeholder="Campus Location"
 							/>
 						</Col>
 					</Row>
 					<Row>
 						<Col>
-							<label className="form-label">About</label>
+							<label className="d-block form-label">About</label>
 							<InputTextarea
 								autoResize
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="About"
 								value={about}
 								onChange={e => setAbout(e.target.value)}
@@ -407,71 +551,78 @@ const MbbsDetails = () => {
 					<Row className="mt-3">
 						<h4 style={{ color: "#0d6efd" }}>Important Facts</h4>
 						<Col>
-							<label className="form-label">
+							<label className="d-block form-label">
 								Course Duration Fulltime (months)
 							</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Course Duration Fulltime (months)"
 								value={courseDurationFulltime}
-								onChange={e => setCourseDurationFulltime(e.target.value)}
+								disabled
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">
+							<label className="d-block form-label">
 								Course Duration Internship (months)
 							</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Course Duration Internship (months)"
 								value={courseDurationInternship}
-								onChange={e => setCourseDurationInternship(e.target.value)}
+								onChange={e => {
+									setCourseDurationOverall(
+										+courseDurationFulltime + +e.target.value
+									);
+									return setCourseDurationInternship(e.target.value);
+								}}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">
+							<label className="d-block form-label">
 								Course Duration Overall (months)
 							</label>
 							<InputText
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Course Duration Overall (months)"
 								value={courseDurationOverall}
-								onChange={e => setCourseDurationOverall(e.target.value)}
+								disabled
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Application End Date</label>
+							<label className="d-block form-label">Application End Date</label>
 							<InputText
 								type="date"
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Application End Date"
 								value={applicationEndDate}
 								onChange={e => setApplicationEndDate(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Teaching Medium</label>
-							<Chips
-								placeholder="Teaching Medium"
-								style={{ display: "block" }}
+							<label className="d-block form-label">Teaching Medium</label>
+							<MultiSelect
 								value={teachingMedium}
+								style={{ width: "100%" }}
 								onChange={e => setTeachingMedium(e.value)}
+								options={teachingMediumOptions}
+								placeholder="Teaching Medium"
 							/>
 						</Col>
 					</Row>
 					<Row>
 						<Col>
-							<label className="form-label">Recognized By</label>
-							<Chips
-								placeholder="Recognized by"
-								style={{ display: "block" }}
+							<label className="d-block form-label">Recognized By</label>
+							<MultiSelect
 								value={recognizedBy}
+								style={{ width: "100%" }}
 								onChange={e => setRecognizedBy(e.value)}
+								options={recognizedByOptions}
+								placeholder="Recognized By"
 							/>
 						</Col>
 					</Row>
 					<button
-						className="me-2 btn btn-primary"
+						className="me-2 btn btn-primary mt-3"
 						type="button"
 						onClick={() =>
 							setRanking([...ranking, { rankingBody: "", rank: "" }])
@@ -485,7 +636,7 @@ const MbbsDetails = () => {
 								<Row key={index} className="w-50">
 									<Col>
 										<InputText
-											className="form-control"
+											style={{ width: "100%" }}
 											placeholder="Ranking Body"
 											name="rankingBody"
 											value={body?.rankingBody}
@@ -494,7 +645,7 @@ const MbbsDetails = () => {
 									</Col>
 									<Col>
 										<InputText
-											className="form-control"
+											style={{ width: "100%" }}
 											placeholder="Rank"
 											name="rank"
 											value={body?.rank}
@@ -557,7 +708,7 @@ const MbbsDetails = () => {
 					</Row>
 					<Row>
 						<Col>
-							<label className="form-label">Video Links</label>
+							<label className="d-block form-label">Video Links</label>
 							<Chips
 								placeholder="Video Links"
 								style={{ display: "block" }}
@@ -566,12 +717,13 @@ const MbbsDetails = () => {
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Facilities</label>
-							<Chips
-								placeholder="Facilities"
-								style={{ display: "block" }}
+							<label className="d-block form-label">Facilities</label>
+							<MultiSelect
 								value={facilities}
+								style={{ width: "100%" }}
 								onChange={e => setFacilities(e.value)}
+								options={facilitiesOptions}
+								placeholder="Facilities"
 							/>
 						</Col>
 					</Row>
@@ -620,42 +772,45 @@ const MbbsDetails = () => {
 					<Row className="mt-3">
 						<h4 style={{ color: "#0d6efd" }}>Fee Structure</h4>
 						<Col>
-							<label className="form-label">First Year Fees</label>
+							<label className="d-block form-label">First Year Fees</label>
 							<InputText
 								type="number"
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="First Year Fees"
 								value={firstYearFees}
 								onChange={e => setFirstYearFees(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Total Package</label>
+							<label className="d-block form-label">Total Package</label>
 							<InputText
 								type="number"
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Total Package"
 								value={totalPackage}
 								onChange={e => setTotalPackage(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Second to Sixth Year Fees</label>
+							<label className="d-block form-label">
+								Second to Sixth Year Fees
+							</label>
 							<InputText
 								type="number"
-								className="form-control"
+								style={{ width: "100%" }}
 								placeholder="Second to Sixth Year Fees"
 								value={secondToSixthYearFees}
 								onChange={e => setSecondToSixthYearFees(e.target.value)}
 							/>
 						</Col>
 						<Col>
-							<label className="form-label">Currrency</label>
-							<InputText
-								className="form-control"
-								placeholder="Currrency"
+							<label className="d-block form-label">Currency</label>
+							<Dropdown
+								style={{ width: "100%" }}
 								value={currency}
-								onChange={e => setCurrency(e.target.value)}
+								onChange={e => setCurrency(e.value)}
+								options={currencyOptions}
+								placeholder="Currency"
 							/>
 						</Col>
 					</Row>
@@ -700,11 +855,11 @@ const MbbsDetails = () => {
 					</Row>
 					<hr />
 
-					<Row>
+					<Row className="mt-3">
 						<h4 style={{ color: "#0d6efd" }}>Syllabus</h4>
-						<div className="mt-3">
+						<div className="mt-2">
 							<button
-								className="w-50 btn btn-primary"
+								className="me-2 btn btn-primary"
 								type="button"
 								onClick={() =>
 									setsyllabus([...syllabus, { title: "", courses: "" }])
@@ -720,7 +875,7 @@ const MbbsDetails = () => {
 									<Row key={index} className="mt-3">
 										<Col>
 											<InputText
-												className="form-control"
+												style={{ width: "100%" }}
 												placeholder="Title"
 												name="title"
 												value={body?.title}
@@ -749,25 +904,70 @@ const MbbsDetails = () => {
 								);
 							})}
 						</form>
-						{/* <Col>
-            <label className='form-label'>Title</label>
-            <InputText
-              placeholder='Title'
-              className='form-control'
-              value={syllabusTitle}
-              onChange={(e) => setsyllabusTitle(e.target.value)}
-            />
-          </Col>
-          <Col>
-            <label className='form-label'>Courses</label>
-            <Chips
-              placeholder='Courses'
-              style={{ display: 'block' }}
-              value={courses}
-              onChange={(e) => setCourses(e.value)}
-            />
-          </Col> */}
 					</Row>
+					<hr />
+					<Row className="mt-3">
+						<h4 style={{ color: "#0d6efd" }}>Images</h4>
+						<div className="mt-2">
+							<button
+								className="me-2 btn btn-primary"
+								type="button"
+								onClick={() =>
+									setImages([...images, { imgCaption: "", imgLink: "" }])
+								}
+							>
+								Add Images
+							</button>
+						</div>
+
+						<form>
+							{images?.map((body, index) => {
+								return (
+									<Row key={index} className="mt-3">
+										<Col>
+											<InputText
+												style={{ width: "100%" }}
+												placeholder="Image Caption"
+												name="imgCaption"
+												value={body?.imgCaption}
+												onChange={e => handleImageChange(e, index)}
+											/>
+										</Col>
+										<Col>
+											<InputText
+												style={{ width: "100%" }}
+												placeholder="Image Link"
+												name="imgLink"
+												value={body?.imgLink}
+												onChange={e => handleImageChange(e, index)}
+											/>
+										</Col>
+										<Col>
+											<button
+												className="me-2 btn btn-danger"
+												type="button"
+												onClick={() => removeImagesFormData(index)}
+											>
+												Remove
+											</button>
+										</Col>
+									</Row>
+								);
+							})}
+						</form>
+					</Row>
+					<Row>
+						<Col>
+							<label className="d-block form-label">Videos</label>
+							<Chips
+								placeholder="Add Video Links"
+								style={{ display: "block" }}
+								value={videos}
+								onChange={e => setVideos(e.value)}
+							/>
+						</Col>
+					</Row>
+
 					<br />
 					<Row className="d-flex flex-1 flex-grow-1 justify-content-center align-items-center">
 						<button
